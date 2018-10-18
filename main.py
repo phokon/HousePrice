@@ -8,6 +8,7 @@ API_PROPERTY_DETAIL = 'http://www.zillow.com/webservice/GetUpdatedPropertyDetail
 
 
 
+
 db = SqliteDatabase('house.db')
 
 def get_property_details(zpid):
@@ -30,15 +31,10 @@ def parse_XML_to_dict(xml_file, attrib_set):
 
 
 
-def testDB():
+def create_table():
     db.connect()
     db.drop_tables([House])
     db.create_tables([House])
-    testHouse = House(zpid=1001, finishedSqFt=3000)
-    print (testHouse.save())
-    print (House.get(House.zpid == '1001'))
-
-
 
 house_attrib = set(['street', 'zipcode', 'city', 'state', 'latitude', 'longitude', 'useCode', 'taxAssessmentYear','taxAssessment',
                     'yearBuilt','lotSizeSqFt','finishedSqFt','bedrooms','bathrooms', 'lastSoldDate', 'lastSoldPrice','zestimatePrice','zestimateDate',
@@ -47,7 +43,7 @@ house_attrib = set(['street', 'zipcode', 'city', 'state', 'latitude', 'longitude
 
 
 class House(Model):
-    zpid = IntegerField()
+    zpid = IntegerField(unique=True)
     street = CharField(null=True)
     zipcode = CharField(null=True)
     city = CharField(null=True)
@@ -77,8 +73,7 @@ class House(Model):
     middleSchool = CharField(null=True)
     highSchool = CharField(null=True)
 
-    # construction
-    def __init__(self, initial_dict):
+    def set_attributes(self, initial_dict):
         for key in initial_dict:
             setattr(self, key, initial_dict[key])
 
@@ -93,7 +88,13 @@ class House(Model):
 
 def test_parse_xml():
     response = get_property_details(51731365)
-    # print(response)
-    House(parse_XML_to_dict(response, house_attrib))
+    initial_dict = parse_XML_to_dict(response, house_attrib)
+    house = House(zpid=51731365)
+    house.set_attributes(initial_dict)
+    try:
+        house.save()
+    except:
+        print('Duplicated entry.')
 
+create_table()
 test_parse_xml()
