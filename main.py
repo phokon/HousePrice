@@ -5,11 +5,20 @@ from peewee import *
 ZWS_ID = 'X1-ZWz1ggucbbcd8r_9fxlx'
 
 API_PROPERTY_DETAIL = 'http://www.zillow.com/webservice/GetUpdatedPropertyDetails.htm'
-
+API_SEARCH_BY_ADDRESS = 'http://www.zillow.com/webservice/GetSearchResults.htm'
 
 
 
 db = SqliteDatabase('house.db')
+
+def search_zpid_by_address(address, citystatezip):
+    qp = {'zws-id': ZWS_ID, 'address': address, 'citystatezip': citystatezip}
+    resp = requests.get(API_SEARCH_BY_ADDRESS, params=qp)
+    if resp.status_code != 200:
+        return None
+    root = ET.fromstring(resp.content)
+    for zpid in root.iter('zpid'):
+        return zpid.text
 
 def get_property_details(zpid):
     qp = {'zws-id': ZWS_ID, 'zpid':zpid}
@@ -96,5 +105,10 @@ def test_parse_xml():
     except:
         print('Duplicated entry.')
 
-create_table()
-test_parse_xml()
+#create_table()
+#test_parse_xml()
+def main():
+    print(search_zpid_by_address('12558 Quincy Adams Ct', '20171'))
+
+if __name__ == "__main__":
+    main()
