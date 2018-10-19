@@ -35,7 +35,7 @@ def parse_XML_to_dict(xml_file, attrib_set):
         if child is not None:
             if child.tag in attrib_set:
                 dict[child.tag] = child.text
-    print (dict)
+    # print (dict)
     return dict
 
 
@@ -90,15 +90,10 @@ class House(Model):
         # this model uses "house.db" database
         database = db
 
-
-
-
-
-
-def test_parse_xml():
-    response = get_property_details(51731365)
+def query_and_save_house(zpid):
+    response = get_property_details(zpid)
     initial_dict = parse_XML_to_dict(response, house_attrib)
-    house = House(zpid=51731365)
+    house = House(zpid=zpid)
     house.set_attributes(initial_dict)
     try:
         house.save()
@@ -108,7 +103,10 @@ def test_parse_xml():
 #create_table()
 #test_parse_xml()
 def main():
-    print(search_zpid_by_address('12558 Quincy Adams Ct', '20171'))
+    create_table()
+    zpid = search_zpid_by_address('12558 Quincy Adams Ct', '20171')
+    query_and_save_house(zpid)
+
 
 if __name__ == "__main__":
     main()
